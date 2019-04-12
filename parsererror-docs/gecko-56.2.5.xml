@@ -1,0 +1,6 @@
+<?xml-stylesheet href="chrome://global/locale/intl.css" type="text/css"?>
+
+<parsererror xmlns="http://www.mozilla.org/newlayout/xml/parsererror.xml">XML Parsing Error: syntax error
+Location: file:///C:/domparser-tests/index.html
+Line Number 1, Column 1:<sourcetext>&gt;&lt;
+^</sourcetext></parsererror>
