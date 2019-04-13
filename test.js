@@ -104,8 +104,12 @@ const entrypoint = async function() {
 	let xmltsUrl = new URL(`./xmlts20080827/`, docUrl);
 
 	let tests = [].concat(
+		await getIbmTests(new URL(`./ibm/`, xmltsUrl)),
+		await getSunTests(new URL(`./sun/`, xmltsUrl)),
 		await getOasisTests(new URL(`./oasis/`, xmltsUrl)),
 		await getXmltestTests(new URL(`./xmltest/`, xmltsUrl)),
+		await getJapTests(new URL(`./japanese/`, xmltsUrl)),
+		await getEduniTests(new URL(`./eduni/`, xmltsUrl)),
 		await getParserErrorDocTests(new URL(`./parsererror-docs/`, docUrl)));
 
 	let testCount = tests.length;
@@ -204,10 +208,10 @@ const oasisIgnoreList = new Set([
 	`p69pass1.xml`,]);
 
 const getOasisTests = async function(baseUrl) {
-	let doc = tryParseXml(
+	let doc = parseXmlNative(
 		await tryHttpGetString(new URL(`./oasis.xml`, baseUrl)));
 
-	if (doc === null) {
+	if (!(doc instanceof XMLDocument)) {
 		console.error(`failed to load oasis test case list`);
 		return [];};
 
@@ -269,10 +273,10 @@ const xmltestIgnoreList = new Set([
 	`valid/not-sa/012.xml`,]);
 
 const getXmltestTests = async function(baseUrl) {
-	let doc = tryParseXml(
+	let doc = parseXmlNative(
 		await tryHttpGetString(new URL(`./xmltest.xml`, baseUrl)));
 
-	if (doc === null) {
+	if (!(doc instanceof XMLDocument)) {
 		console.error(`failed to load xmltest test case list`);
 		return [];};
 
@@ -297,6 +301,280 @@ const getXmltestTests = async function(baseUrl) {
 			tests.push({
 				url : new URL(href, baseUrl),
 				wellformed : false,});
+		};
+	};
+
+	return tests;
+};
+
+const ibmIgnoreList = new Set([
+	/* gecko DOMParser doesn't conform: */
+	`not-wf/P02/ibm02n30.xml`,
+	`not-wf/P02/ibm02n31.xml`,
+	`not-wf/p28a/ibm28an01.xml`,
+	`not-wf/P30/ibm30n01.xml`,
+	`not-wf/P31/ibm31n01.xml`,
+	`not-wf/P61/ibm61n01.xml`,
+	`not-wf/P62/ibm62n01.xml`,
+	`not-wf/P62/ibm62n02.xml`,
+	`not-wf/P62/ibm62n03.xml`,
+	`not-wf/P62/ibm62n04.xml`,
+	`not-wf/P62/ibm62n05.xml`,
+	`not-wf/P62/ibm62n06.xml`,
+	`not-wf/P62/ibm62n07.xml`,
+	`not-wf/P62/ibm62n08.xml`,
+	`not-wf/P63/ibm63n01.xml`,
+	`not-wf/P63/ibm63n02.xml`,
+	`not-wf/P63/ibm63n03.xml`,
+	`not-wf/P63/ibm63n04.xml`,
+	`not-wf/P63/ibm63n05.xml`,
+	`not-wf/P63/ibm63n06.xml`,
+	`not-wf/P63/ibm63n07.xml`,
+	`not-wf/P64/ibm64n01.xml`,
+	`not-wf/P64/ibm64n02.xml`,
+	`not-wf/P64/ibm64n03.xml`,
+	`not-wf/P65/ibm65n01.xml`,
+	`not-wf/P65/ibm65n02.xml`,
+	`not-wf/P77/ibm77n01.xml`,
+	`not-wf/P77/ibm77n02.xml`,
+	`not-wf/P77/ibm77n03.xml`,
+	`not-wf/P77/ibm77n04.xml`,
+	`not-wf/P78/ibm78n01.xml`,
+	`not-wf/P78/ibm78n02.xml`,
+	`not-wf/P79/ibm79n01.xml`,
+	`not-wf/P79/ibm79n02.xml`,
+	`valid/P09/ibm09v03.xml`,
+	`valid/P09/ibm09v05.xml`,
+	`valid/P32/ibm32v02.xml`,]);
+
+const getIbmTests = async function(baseUrl) {
+	let tests = [];
+
+	for (let [dir, name] of [
+		/* gecko DOMParser doesn't support xml 1.1 */
+		// [`./xml-1.1/`, `ibm_valid.xml`],
+		// [`./xml-1.1/`, `ibm_not-wf.xml`],
+		// [`./xml-1.1/`, `ibm_valid.xml`],
+
+		[`./`, `ibm_oasis_invalid.xml`],
+		[`./`, `ibm_oasis_not-wf.xml`],
+		[`./`, `ibm_oasis_valid.xml`],])
+	{
+		let dirUrl = new URL(dir, baseUrl);
+
+		let doc = parseXmlNative(
+			await tryHttpGetString(new URL(name, dirUrl)));
+
+		if (!(doc instanceof XMLDocument)) {
+			console.error(`failed to load ibm test case list "${name}"`);
+			continue;};
+
+		for (let test of doc.querySelectorAll(
+			`TEST:not([TYPE='not-wf'])`))
+		{
+			let href = test.getAttribute(`URI`);
+			if (!ibmIgnoreList.has(href)) {
+				tests.push({
+					url : new URL(href, dirUrl),
+					wellformed : true,});
+			};
+		};
+
+		for (let test of doc.querySelectorAll(
+			`TEST[TYPE='not-wf']`))
+		{
+			let href = test.getAttribute(`URI`);
+			if (!ibmIgnoreList.has(href)) {
+				tests.push({
+					url : new URL(href, dirUrl),
+					wellformed : false,});
+			};
+		};
+	};
+
+	return tests;
+};
+
+const sunIgnoreList = new Set([
+	/* gecko DOMParser doesn't conform: */
+	`not-wf/cond01.xml`,
+	`not-wf/cond02.xml`,
+	`not-wf/decl01.xml`,
+	`not-wf/dtd07.xml`,
+	`not-wf/encoding07.xml`,
+	`valid/not-sa03.xml`,
+	`valid/pe00.xml`,
+	/* don't test non-utf8 encodings: */
+	`invalid/utf16b.xml`,
+	`invalid/utf16l.xml`,]);
+
+const getSunTests = async function(baseUrl) {
+	let tests = [];
+
+	for (let name of [
+		`sun-not-wf.xml`,
+		`sun-valid.xml`,
+		//`sun-error.xml`,
+		`sun-invalid.xml`,])
+	{
+		/* the sun test-case lists are (ironically) malformed xml documents: */
+
+		let xml = await tryHttpGetString(new URL(name, baseUrl));
+		if (typeof xml !== `string`) {
+			console.error(`failed to load sun test case list "${name}"`);
+			return tests;};
+
+		for (let s, offset = 0;
+			({0 : s} = {.../<TEST[\s\S]+?<\/TEST>/g.exec(xml.slice(offset))})[0]
+				!== undefined;
+			offset += s.length)
+		{
+			let doc = parseXmlNative(s);
+	
+			if (!(doc instanceof XMLDocument)) {
+				console.error(`failed to load sun test case list "${name}"`);
+				return tests;};
+	
+			for (let test of doc.querySelectorAll(
+				`TEST:not([TYPE='not-wf'])`))
+			{
+				let href = test.getAttribute(`URI`);
+				if (!sunIgnoreList.has(href)) {
+					tests.push({
+						url : new URL(href, baseUrl),
+						wellformed : true,});
+				};
+			};
+	
+			for (let test of doc.querySelectorAll(
+				`TEST[TYPE='not-wf']`))
+			{
+				let href = test.getAttribute(`URI`);
+				if (!sunIgnoreList.has(href)) {
+					tests.push({
+						url : new URL(href, baseUrl),
+						wellformed : false,});
+				};
+			};
+		};
+	};
+
+	return tests;
+};
+
+const japIgnoreList = new Set([
+	/* don't test non-utf8 encodings: */
+	`pr-xml-euc-jp.xml`,
+	`pr-xml-iso-2022-jp.xml`,
+	`pr-xml-little-endian.xml`,
+	`pr-xml-shift_jis.xml`,
+	`pr-xml-utf-16.xml`,
+	`weekly-euc-jp.dtd`,
+	`weekly-euc-jp.xml`,
+	`weekly-iso-2022-jp.dtd`,
+	`weekly-iso-2022-jp.xml`,
+	`weekly-little-endian.xml`,
+	`weekly-shift_jis.dtd`,
+	`weekly-shift_jis.xml`,
+	`weekly-utf-16.dtd`,
+	`weekly-utf-16.xml`,]);
+
+const getJapTests = async function(baseUrl) {
+	let doc = parseXmlNative(
+		await tryHttpGetString(new URL(`./japanese.xml`, baseUrl)));
+
+	if (!(doc instanceof XMLDocument)) {
+		console.error(`failed to load japanese test case list`);
+		return [];};
+
+	let tests = [];
+
+	for (let test of doc.querySelectorAll(
+		`:root > TEST:not([TYPE='not-wf'])`))
+	{
+		let href = test.getAttribute(`URI`);
+		if (!japIgnoreList.has(href)) {
+			tests.push({
+				url : new URL(href, baseUrl),
+				wellformed : true,});
+		};
+	};
+
+	for (let test of doc.querySelectorAll(
+		`:root > TEST[TYPE='not-wf']`))
+	{
+		let href = test.getAttribute(`URI`);
+		if (!japIgnoreList.has(href)) {
+			tests.push({
+				url : new URL(href, baseUrl),
+				wellformed : false,});
+		};
+	};
+
+	return tests;
+};
+
+const eduniIgnoreList = new Set([
+	`E27.xml`, /* malformed unicode */
+	/* gecko DOMParser doesn't conform: */
+	`E61.xml`,
+	`E38.xml`,
+	`E13.xml`,
+]);
+
+const getEduniTests = async function(baseUrl) {
+	let tests = [];
+
+	for (let [dir, name] of [
+		/* gecko DOMParser doesn't support xml 1.1 */
+		// [`./xml-1.1/`, `xml11.xml`],
+		// [`./namespaces/1.1/`, `rmt-ns11.xml`],
+
+		[`./errata-2e/`, `errata2e.xml`],
+		[`./errata-3e/`, `errata3e.xml`],
+		[`./errata-4e/`, `errata4e.xml`],
+		[`./namespaces/1.0/`, `rmt-ns10.xml`],
+		[`./namespaces/errata-1e/`, `errata1e.xml`],])
+	{
+		let dirUrl = new URL(dir, baseUrl);
+
+		let doc = parseXmlNative(
+			await tryHttpGetString(new URL(name, dirUrl)));
+
+		if (!(doc instanceof XMLDocument)) {
+			console.error(`failed to load eduni test case list "${name}"`);
+			continue;};
+
+		let exclude =
+			`:not([TYPE='error'])`
+			/* gecko DOMParser doesn't support external entities? */
+			+`:not([ENTITIES='parameter'])`
+			+`:not([ENTITIES='both'])`
+			/* gecko DOMParser doesn't support xml 1.1 */
+			+`:not([VERSION='1.1'])`
+			/* gecko DOMParser doesn't seem to support xml 1.0 5th edition */
+			+`:not([EDITION='5'])`;
+
+		for (let test of doc.querySelectorAll(
+			`TEST:not([TYPE='not-wf'])${exclude}`))
+		{
+			let href = test.getAttribute(`URI`);
+			if (!eduniIgnoreList.has(href)) {
+				tests.push({
+					url : new URL(href, dirUrl),
+					wellformed : true,});
+			};
+		};
+
+		for (let test of doc.querySelectorAll(
+			`TEST[TYPE='not-wf']${exclude}`))
+		{
+			let href = test.getAttribute(`URI`);
+			if (!eduniIgnoreList.has(href)) {
+				tests.push({
+					url : new URL(href, dirUrl),
+					wellformed : false,});
+			};
 		};
 	};
 
