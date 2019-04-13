@@ -1,0 +1,6 @@
+<?xml version="1.0"?><!-- Namespace equality test: plain repetition --><!DOCTYPE foo><foo xmlns:a="http://example.org/~wilbur" xmlns:b="http://example.org/~wilbur"><parsererror xmlns="http://www.w3.org/1999/xhtml" style="display: block; white-space: pre; border: 2px solid #c77; padding: 0 1em 0 1em; margin: 1em; background-color: #fdd; color: black"><h3>This page contains the following errors:</h3><div style="font-family:monospace;font-size:12px">error on line 16 at column 27: Namespaced Attribute attr in 'http://example.org/~wilbur' redefined
+</div><h3>Below is a rendering of the page up to the first error.</h3></parsererror>
+
+<bar a:attr="1" b:attr="2"/>
+
+</foo>
