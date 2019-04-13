@@ -26,7 +26,9 @@ running 1641 tests
 # chrome 75:
 
 ```
-
+userAgent: "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3763.0 Safari/537.36"
+running 1340 tests
+1320/1340 tests passed
 ```
 
 unfortunately chrome appears to have a bug where certain classes of XML malformities cause the resulting document to retain comments and processing instructions from the source.
