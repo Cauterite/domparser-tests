@@ -100,6 +100,8 @@ const httpGet = function(url, responseType) {
 /* -------------------------------------------------------------------------- */
 
 const entrypoint = async function() {
+	logInfo(`userAgent: "${navigator.userAgent}"`);
+
 	let docUrl = new URL(document.documentURI);
 	let xmltsUrl = new URL(`./xmlts20080827/`, docUrl);
 
@@ -116,8 +118,7 @@ const entrypoint = async function() {
 	let passCount = 0;
 	let failDetailsList = [];
 
-	console.info(
-		`running ${testCount} tests; userAgent: "${navigator.userAgent}"`);
+	logInfo(`running ${testCount} tests`);
 
 	try {
 		await Promise.all(
@@ -133,9 +134,16 @@ const entrypoint = async function() {
 		debugger;
 	};
 
-	console.info(`${passCount}/${testCount} tests passed`);
+	logInfo(`${passCount}/${testCount} tests passed`);
 
 	debugger;
+};
+
+const logInfo = function(...args) {
+	console.info(...args);
+	let log = document.getElementById(`log`);
+	log.textContent += args.join(` `);
+	log.textContent += `\n`;
 };
 
 const assert = function(cond, msg = `assertion failed`) {
@@ -545,8 +553,8 @@ const getEduniTests = async function(baseUrl) {
 			console.error(`failed to load eduni test case list "${name}"`);
 			continue;};
 
-		let exclude =
-			`:not([TYPE='error'])`
+		let exclude = ``
+			+`:not([TYPE='error'])`
 			/* gecko DOMParser doesn't support external entities? */
 			+`:not([ENTITIES='parameter'])`
 			+`:not([ENTITIES='both'])`
