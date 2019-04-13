@@ -23,7 +23,7 @@ const tryParseXml = function(src) {
 			src+`<?${key}?>`, `application/xml`);
 	} catch (x) {};
 
-	if (!(doc instanceof Document)) {
+	if (!(doc instanceof XMLDocument)) {
 		return null;};
 
 	let lastNode = doc.lastChild;
@@ -105,7 +105,8 @@ const entrypoint = async function() {
 
 	let tests = [].concat(
 		await getOasisTests(new URL(`./oasis/`, xmltsUrl)),
-		await getXmltestTests(new URL(`./xmltest/`, xmltsUrl)));
+		await getXmltestTests(new URL(`./xmltest/`, xmltsUrl)),
+		await getParserErrorDocTests(new URL(`./parsererror-docs/`, docUrl)));
 
 	let testCount = tests.length;
 	let passCount = 0;
@@ -135,9 +136,7 @@ const entrypoint = async function() {
 
 const assert = function(cond, msg = `assertion failed`) {
 	if (!cond) {
-		debugger;
-		throw new Error(msg);
-	};
+		throw new Error(msg);};
 };
 
 const performTest = async function(test) {
@@ -180,7 +179,7 @@ const performTest = async function(test) {
 	return {result : true};
 };
 
-const oasisBlacklist = new Set([
+const oasisIgnoreList = new Set([
 	/* gecko DOMParser doesn't like grave accent in tag name: */
 	`p04pass1.xml`,
 
@@ -198,7 +197,11 @@ const oasisBlacklist = new Set([
 	`p31fail1.xml`,
 	`p30fail1.xml`,
 	`p09fail1.xml`,
-	`p09fail2.xml`,]);
+	`p09fail2.xml`,
+
+	/* blink DOMParser doesn't conform: */
+	`p28pass3.xml`,
+	`p69pass1.xml`,]);
 
 const getOasisTests = async function(baseUrl) {
 	let doc = tryParseXml(
@@ -214,7 +217,7 @@ const getOasisTests = async function(baseUrl) {
 		`:root > TEST:not([TYPE='not-wf'])`))
 	{
 		let href = test.getAttribute(`URI`);
-		if (!oasisBlacklist.has(href)) {
+		if (!oasisIgnoreList.has(href)) {
 			tests.push({
 				url : new URL(href, baseUrl),
 				wellformed : true});
@@ -225,7 +228,7 @@ const getOasisTests = async function(baseUrl) {
 		`:root > TEST[TYPE='not-wf']`))
 	{
 		let href = test.getAttribute(`URI`);
-		if (!oasisBlacklist.has(href)) {
+		if (!oasisIgnoreList.has(href)) {
 			tests.push({
 				url : new URL(href, baseUrl),
 				wellformed : false});
@@ -235,7 +238,7 @@ const getOasisTests = async function(baseUrl) {
 	return tests;
 };
 
-const xmltestBlacklist = new Set([
+const xmltestIgnoreList = new Set([
 	/* gecko DOMParser doesn't conform: */
 	`valid/sa/051.xml`,
 	`valid/sa/050.xml`,
@@ -254,7 +257,16 @@ const xmltestBlacklist = new Set([
 	`not-wf/not-sa/006.xml`,
 	`not-wf/not-sa/004.xml`,
 	`not-wf/not-sa/003.xml`,
-	`valid/sa/012.xml`,]);
+	`valid/sa/012.xml`,
+
+	/* blink DOMParser doesn't conform: */
+	`valid/sa/097.xml`,
+	`valid/sa/070.xml`,
+	`valid/not-sa/026.xml`,
+	`not-wf/sa/140.xml`,
+	`not-wf/sa/141.xml`,
+	`valid/not-sa/011.xml`,
+	`valid/not-sa/012.xml`,]);
 
 const getXmltestTests = async function(baseUrl) {
 	let doc = tryParseXml(
@@ -270,10 +282,10 @@ const getXmltestTests = async function(baseUrl) {
 		`:root > TEST:not([TYPE='not-wf'])`))
 	{
 		let href = test.getAttribute(`URI`);
-		if (!xmltestBlacklist.has(href)) {
+		if (!xmltestIgnoreList.has(href)) {
 			tests.push({
 				url : new URL(href, baseUrl),
-				wellformed : true});
+				wellformed : true,});
 		};
 	};
 
@@ -281,14 +293,23 @@ const getXmltestTests = async function(baseUrl) {
 		`:root > TEST[TYPE='not-wf']`))
 	{
 		let href = test.getAttribute(`URI`);
-		if (!xmltestBlacklist.has(href)) {
+		if (!xmltestIgnoreList.has(href)) {
 			tests.push({
 				url : new URL(href, baseUrl),
-				wellformed : false});
+				wellformed : false,});
 		};
 	};
 
 	return tests;
+};
+
+const getParserErrorDocTests = async function(baseUrl) {
+	return [
+		`blink-75.0.3763.0-win64.xhtml`,
+		`gecko-56.2.5-win64.xml`,]
+		.map(href => ({
+			url : new URL(href, baseUrl),
+			wellformed : true,}));
 };
 
 /* -------------------------------------------------------------------------- */
