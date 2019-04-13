@@ -898,12 +898,15 @@ const getEduniTests = async function(baseUrl) {
 
 const getParserErrorDocTests = async function(baseUrl) {
 	return [
-		`blink-75.0.3763.0-win64.xhtml`,
-		`blink-75.0.3763.0-win64-eduni-namespaces-1.0-009.xml`,
-		`gecko-56.2.5-win64.xml`,]
+		`gecko-56.2.5-win64.xml`,
+		`blink-75.0.3763.0-win64.xhtml`,]
 		.map(href => ({
 			url : new URL(href, baseUrl),
 			wellformed : true,}));
+
+	/* sometimes chrome doesn't even bother to omit the malformed element from
+		the parsererror document: */
+	// `blink-75.0.3763.0-win64-eduni-namespaces-1.0-009.xml`,
 };
 
 /* -------------------------------------------------------------------------- */
