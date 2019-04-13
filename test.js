@@ -54,7 +54,7 @@ const serialiseXmlNative = function(doc) {
 
 /* -------------------------------------------------------------------------- */
 
-const requestTimeoutMs = 10000;
+const requestTimeoutMs = 60 * 1000;
 
 const tryHttpGetString = async function(url) {
 	let resp = await tryHttpGetXml(url);
