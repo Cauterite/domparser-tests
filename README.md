@@ -33,7 +33,7 @@ unfortunately chrome appears to have a bug where certain classes of XML malformi
 
 example:
 
-```
+```javascript
 let doc = (new DOMParser).parseFromString(
 	`<a xmlns="http://www.w3.org/XML/1998/namespace"/><?b?>`, `application/xml`);
 
