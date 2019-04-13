@@ -19,16 +19,16 @@ test cases `/xmlts20080827/*` borrowed from: https://www.w3.org/XML/Test/xmlconf
 
 ```
 userAgent: "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:56.0; Waterfox) Gecko/20100101 Firefox/56.2.5"
-running 1339 tests
-1339/1339 tests passed
+running 2597 tests
+2597/2597 tests passed
 ```
 
 # chrome 75:
 
 ```
-userAgent: "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3763.0 Safari/537.36"
-running 1339 tests
-1319/1339 tests passed
+userAgent: "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3764.0 Safari/537.36"
+running 2597 tests
+2540/2597 tests passed
 ```
 
 unfortunately chrome appears to have a bug where certain classes of XML malformities cause the resulting document to retain comments and processing instructions from the source.
@@ -44,29 +44,4 @@ console.log(doc.lastChild instanceof ProcessingInstruction);
 
 console.log(doc.getElementsByTagName(`parsererror`));
 // → HTMLCollection [parsererror]
-```
-
-this issue has only been observed with namespace-related malformities and causes the following tests to fail:
-
-```
-eduni/namespaces/1.0/009.xml
-eduni/namespaces/1.0/010.xml
-eduni/namespaces/1.0/011.xml
-eduni/namespaces/1.0/012.xml
-eduni/namespaces/1.0/014.xml
-eduni/namespaces/1.0/015.xml
-eduni/namespaces/1.0/023.xml
-eduni/namespaces/1.0/025.xml
-eduni/namespaces/1.0/029.xml
-eduni/namespaces/1.0/030.xml
-eduni/namespaces/1.0/031.xml
-eduni/namespaces/1.0/032.xml
-eduni/namespaces/1.0/033.xml
-eduni/namespaces/1.0/036.xml
-eduni/namespaces/1.0/042.xml
-eduni/namespaces/1.0/043.xml
-eduni/namespaces/1.0/044.xml
-eduni/namespaces/errata-1e/NE13a.xml
-eduni/namespaces/errata-1e/NE13b.xml
-eduni/namespaces/errata-1e/NE13c.xml
 ```
