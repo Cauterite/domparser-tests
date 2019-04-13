@@ -12,3 +12,13 @@ https://stackoverflow.com/questions/41212080
 ---
 
 test cases `/xmlts20080827/*` borrowed from: https://www.w3.org/XML/Test/xmlconf-20080827.html
+
+---
+
+#firefox 56:
+
+```
+userAgent: "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:56.0; Waterfox) Gecko/20100101 Firefox/56.2.5"
+running 1641 tests
+1641/1641 tests passed
+```

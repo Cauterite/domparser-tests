@@ -191,6 +191,16 @@ const performTest = async function(test) {
 	return {result : true};
 };
 
+const selectorExclude = ``
+	+`:not([TYPE='error'])`
+	/* external entities cause unreliable results in general */
+	+`:not([ENTITIES='parameter'])`
+	+`:not([ENTITIES='both'])`
+	/* gecko DOMParser doesn't support xml 1.1 */
+	+`:not([VERSION='1.1'])`
+	/* gecko DOMParser doesn't seem to support xml 1.0 5th edition */
+	+`:not([EDITION='5'])`;
+
 const oasisIgnoreList = new Set([
 	/* gecko DOMParser doesn't like grave accent in tag name: */
 	`p04pass1.xml`,
@@ -226,7 +236,7 @@ const getOasisTests = async function(baseUrl) {
 	let tests = [];
 
 	for (let test of doc.querySelectorAll(
-		`:root > TEST:not([TYPE='not-wf'])`))
+		`:root > TEST:not([TYPE='not-wf'])${selectorExclude}`))
 	{
 		let href = test.getAttribute(`URI`);
 		if (!oasisIgnoreList.has(href)) {
@@ -237,7 +247,7 @@ const getOasisTests = async function(baseUrl) {
 	};
 
 	for (let test of doc.querySelectorAll(
-		`:root > TEST[TYPE='not-wf']`))
+		`:root > TEST[TYPE='not-wf']${selectorExclude}`))
 	{
 		let href = test.getAttribute(`URI`);
 		if (!oasisIgnoreList.has(href)) {
@@ -291,7 +301,7 @@ const getXmltestTests = async function(baseUrl) {
 	let tests = [];
 
 	for (let test of doc.querySelectorAll(
-		`:root > TEST:not([TYPE='not-wf'])`))
+		`:root > TEST:not([TYPE='not-wf'])${selectorExclude}`))
 	{
 		let href = test.getAttribute(`URI`);
 		if (!xmltestIgnoreList.has(href)) {
@@ -302,7 +312,7 @@ const getXmltestTests = async function(baseUrl) {
 	};
 
 	for (let test of doc.querySelectorAll(
-		`:root > TEST[TYPE='not-wf']`))
+		`:root > TEST[TYPE='not-wf']${selectorExclude}`))
 	{
 		let href = test.getAttribute(`URI`);
 		if (!xmltestIgnoreList.has(href)) {
@@ -378,7 +388,7 @@ const getIbmTests = async function(baseUrl) {
 			continue;};
 
 		for (let test of doc.querySelectorAll(
-			`TEST:not([TYPE='not-wf'])`))
+			`TEST:not([TYPE='not-wf'])${selectorExclude}`))
 		{
 			let href = test.getAttribute(`URI`);
 			if (!ibmIgnoreList.has(href)) {
@@ -389,7 +399,7 @@ const getIbmTests = async function(baseUrl) {
 		};
 
 		for (let test of doc.querySelectorAll(
-			`TEST[TYPE='not-wf']`))
+			`TEST[TYPE='not-wf']${selectorExclude}`))
 		{
 			let href = test.getAttribute(`URI`);
 			if (!ibmIgnoreList.has(href)) {
@@ -444,7 +454,7 @@ const getSunTests = async function(baseUrl) {
 				return tests;};
 	
 			for (let test of doc.querySelectorAll(
-				`TEST:not([TYPE='not-wf'])`))
+				`TEST:not([TYPE='not-wf'])${selectorExclude}`))
 			{
 				let href = test.getAttribute(`URI`);
 				if (!sunIgnoreList.has(href)) {
@@ -455,7 +465,7 @@ const getSunTests = async function(baseUrl) {
 			};
 	
 			for (let test of doc.querySelectorAll(
-				`TEST[TYPE='not-wf']`))
+				`TEST[TYPE='not-wf']${selectorExclude}`))
 			{
 				let href = test.getAttribute(`URI`);
 				if (!sunIgnoreList.has(href)) {
@@ -498,7 +508,7 @@ const getJapTests = async function(baseUrl) {
 	let tests = [];
 
 	for (let test of doc.querySelectorAll(
-		`:root > TEST:not([TYPE='not-wf'])`))
+		`:root > TEST:not([TYPE='not-wf'])${selectorExclude}`))
 	{
 		let href = test.getAttribute(`URI`);
 		if (!japIgnoreList.has(href)) {
@@ -509,7 +519,7 @@ const getJapTests = async function(baseUrl) {
 	};
 
 	for (let test of doc.querySelectorAll(
-		`:root > TEST[TYPE='not-wf']`))
+		`:root > TEST[TYPE='not-wf']${selectorExclude}`))
 	{
 		let href = test.getAttribute(`URI`);
 		if (!japIgnoreList.has(href)) {
@@ -553,18 +563,8 @@ const getEduniTests = async function(baseUrl) {
 			console.error(`failed to load eduni test case list "${name}"`);
 			continue;};
 
-		let exclude = ``
-			+`:not([TYPE='error'])`
-			/* gecko DOMParser doesn't support external entities? */
-			+`:not([ENTITIES='parameter'])`
-			+`:not([ENTITIES='both'])`
-			/* gecko DOMParser doesn't support xml 1.1 */
-			+`:not([VERSION='1.1'])`
-			/* gecko DOMParser doesn't seem to support xml 1.0 5th edition */
-			+`:not([EDITION='5'])`;
-
 		for (let test of doc.querySelectorAll(
-			`TEST:not([TYPE='not-wf'])${exclude}`))
+			`TEST:not([TYPE='not-wf'])${selectorExclude}`))
 		{
 			let href = test.getAttribute(`URI`);
 			if (!eduniIgnoreList.has(href)) {
@@ -575,7 +575,7 @@ const getEduniTests = async function(baseUrl) {
 		};
 
 		for (let test of doc.querySelectorAll(
-			`TEST[TYPE='not-wf']${exclude}`))
+			`TEST[TYPE='not-wf']${selectorExclude}`))
 		{
 			let href = test.getAttribute(`URI`);
 			if (!eduniIgnoreList.has(href)) {
