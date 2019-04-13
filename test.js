@@ -38,6 +38,20 @@ const tryParseXml = function(src) {
 	return doc;
 };
 
+const parseXmlNative = function(src) {
+	if (typeof src !== `string`) {
+		return null;};
+
+	return (new DOMParser).parseFromString(src, `application/xml`);
+};
+
+const serialiseXmlNative = function(doc) {
+	if (!(doc instanceof Document)) {
+		throw new TypeError();};
+
+	return (new XMLSerializer).serializeToString(doc);
+};
+
 /* -------------------------------------------------------------------------- */
 
 const requestTimeoutMs = 10000;
@@ -90,16 +104,29 @@ const entrypoint = async function() {
 	let xmltsUrl = new URL(`./xmlts20080827/`, docUrl);
 
 	let tests = [].concat(
-		await getOasisTests(new URL(`./oasis/`, xmltsUrl)));
+		await getOasisTests(new URL(`./oasis/`, xmltsUrl)),
+		await getXmltestTests(new URL(`./xmltest/`, xmltsUrl)));
 
 	let testCount = tests.length;
 	let passCount = 0;
+	let failDetailsList = [];
 
-	await Promise.all(
-		tests
-			.map(async (t) => {
-				if (await performTest(t)) {
-					++passCount;};}));
+	console.info(
+		`running ${testCount} tests; userAgent: "${navigator.userAgent}"`);
+
+	try {
+		await Promise.all(
+			tests.map(async (t) => {
+				let {result, details} = await performTest(t);
+				if (result) {
+					++passCount;
+				} else {
+					failDetailsList.push(details);
+				};
+			}));
+	} catch (x) {
+		debugger;
+	};
 
 	console.info(`${passCount}/${testCount} tests passed`);
 
@@ -117,47 +144,50 @@ const performTest = async function(test) {
 	let xml = await tryHttpGetString(test.url);
 	if (typeof xml !== `string`) {
 		console.error(`failed to load test xml ${test.url.href}`);
-		return false;
+		return {result : false};
 	};
+
+	let expectDoc = parseXmlNative(xml);
+	let expectString = serialiseXmlNative(expectDoc);
 
 	try {
 		if (test.wellformed) {
 			let doc = tryParseXml(xml);
 			assert(doc !== null,
 				`well-formed xml should parse successfully`);
-	
-			let expectDoc =
-				(new DOMParser).parseFromString(xml, `application/xml`);
-			let expectString = (new XMLSerializer).serializeToString(expectDoc);
-			let actualString = (new XMLSerializer).serializeToString(doc);
-	
+
+			let actualString = serialiseXmlNative(doc);
+
 			assert(actualString === expectString,
 				`tryParseXml should not affect the resulting document`);
-	
+
 		} else {
 			assert(tryParseXml(xml) === null,
 				`malformed xml should fail to parse`);
 		};
 	} catch (x) {
-		console.error(`test case failed`, {
+		let details = {
 			href : test.url.href,
 			error : x.message,
 			wellformed : test.wellformed,
-			xml,});
-		return false;
+			xml,
+			nativeParserResult : expectString};
+
+		console.error(`test case failed`, details);
+		return {result : false, details};
 	};
 
-	return true;
+	return {result : true};
 };
 
-let oasisBlacklist = new Set([
-	/* DOMParser doesn't like grave accent in tag name: */
+const oasisBlacklist = new Set([
+	/* gecko DOMParser doesn't like grave accent in tag name: */
 	`p04pass1.xml`,
 
-	/* DOMParser doesn't like `.` after `:` in tag name: */
+	/* gecko DOMParser doesn't like `.` after `:` in tag name: */
 	`p05pass1.xml`,
 
-	/* DTD errors which DOMParser doesn't care about: */
+	/* DTD errors which gecko DOMParser doesn't care about: */
 	`p61fail1.xml`,
 	`p62fail1.xml`,
 	`p62fail2.xml`,
@@ -196,6 +226,62 @@ const getOasisTests = async function(baseUrl) {
 	{
 		let href = test.getAttribute(`URI`);
 		if (!oasisBlacklist.has(href)) {
+			tests.push({
+				url : new URL(href, baseUrl),
+				wellformed : false});
+		};
+	};
+
+	return tests;
+};
+
+const xmltestBlacklist = new Set([
+	/* gecko DOMParser doesn't conform: */
+	`valid/sa/051.xml`,
+	`valid/sa/050.xml`,
+	`valid/sa/049.xml`,
+	`valid/not-sa/031.xml`,
+	`not-wf/sa/170.xml`,
+	`not-wf/sa/169.xml`,
+	`not-wf/sa/168.xml`,
+	`not-wf/not-sa/001.xml`,
+	`not-wf/ext-sa/003.xml`,
+	`not-wf/ext-sa/002.xml`,
+	`not-wf/ext-sa/001.xml`,
+	`not-wf/not-sa/009.xml`,
+	`not-wf/not-sa/008.xml`,
+	`not-wf/not-sa/007.xml`,
+	`not-wf/not-sa/006.xml`,
+	`not-wf/not-sa/004.xml`,
+	`not-wf/not-sa/003.xml`,
+	`valid/sa/012.xml`,]);
+
+const getXmltestTests = async function(baseUrl) {
+	let doc = tryParseXml(
+		await tryHttpGetString(new URL(`./xmltest.xml`, baseUrl)));
+
+	if (doc === null) {
+		console.error(`failed to load xmltest test case list`);
+		return [];};
+
+	let tests = [];
+
+	for (let test of doc.querySelectorAll(
+		`:root > TEST:not([TYPE='not-wf'])`))
+	{
+		let href = test.getAttribute(`URI`);
+		if (!xmltestBlacklist.has(href)) {
+			tests.push({
+				url : new URL(href, baseUrl),
+				wellformed : true});
+		};
+	};
+
+	for (let test of doc.querySelectorAll(
+		`:root > TEST[TYPE='not-wf']`))
+	{
+		let href = test.getAttribute(`URI`);
+		if (!xmltestBlacklist.has(href)) {
 			tests.push({
 				url : new URL(href, baseUrl),
 				wellformed : false});
