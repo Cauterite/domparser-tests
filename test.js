@@ -172,8 +172,8 @@ const performTest = async function(test) {
 			assert(actualString === expectString,
 				`tryParseXml should not affect the resulting document`);
 
-			if (expectString.includes(`parsererror`)) {
-				debugger;};
+			//if (expectString.includes(`parsererror`)) {
+			//	debugger;};
 
 		} else {
 			assert(tryParseXml(xml) === null,
