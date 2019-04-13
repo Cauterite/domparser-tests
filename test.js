@@ -95,7 +95,10 @@ const httpGet = function(url, responseType, respMimeType) {
 		};
 
 		let onSuccess = function() {
-			if (this.status === 200) {
+			if (this.status === 200
+				/* chrome workaround: */
+				|| (this.status === 0 && url.protocol === `file:`))
+			{
 				return resolve(this);
 			} else {
 				return onFailure.call(this);};
@@ -200,12 +203,16 @@ const performTest = async function(test) {
 				`tryParseXml should not affect the resulting document`);
 		};
 	} catch (x) {
+		let nativeParserDoc = parseXmlNative(resp.string);
+		let nativeParserResult =
+			nativeParserDoc ? serialiseXmlNative(nativeParserDoc) : null;
+
 		let details = {
 			href : test.url.href,
 			error : x.message,
 			expectWellformed : test.wellformed,
 			testXml : resp.string,
-			nativeParserResult : expectString};
+			nativeParserResult};
 
 		console.error(`test case failed`, details);
 		return {result : false, details};
