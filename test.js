@@ -17,9 +17,11 @@ const tryParseXml = function(src) {
 
 	let key = `a`+Math.random().toString(32);
 
+	let parser = new DOMParser;
+
 	let doc = null;
 	try {
-		doc = (new DOMParser).parseFromString(
+		doc = parser.parseFromString(
 			src+`<?${key}?>`, `application/xml`);
 	} catch (x) {};
 
@@ -34,6 +36,33 @@ const tryParseXml = function(src) {
 		return null;};
 
 	doc.removeChild(lastNode);
+
+	/* in some cases, chrome chooses to insert its <parsererror> into the root
+	element, leaving the rest of the document intact (including our processing
+	instruction).
+
+	see: chromium/src/third_party/blink/renderer/core/xml/parser/xml_errors.cc
+
+	however, chrome will never insert more than one <parsererror> element.
+	so to detect this case, we'll force an error which triggers this behaviour
+	and check whether the result has the same number of <parsererror> elements
+	as the previous result. */
+
+	let errElemCount =
+		doc.documentElement.getElementsByTagName(`parsererror`).length;
+	if (errElemCount !== 0) {
+		let errDoc = null;
+		try {
+			errDoc = parser.parseFromString(
+				src+`<?`, `application/xml`);
+		} catch (x) {};
+
+		if (!(errDoc instanceof XMLDocument)
+			|| errDoc.documentElement.getElementsByTagName(`parsererror`).length
+				=== errElemCount)
+		{
+			return null;};
+	};
 
 	return doc;
 };
@@ -54,7 +83,7 @@ const serialiseXmlNative = function(doc) {
 
 /* -------------------------------------------------------------------------- */
 
-const requestTimeoutMs = 10000;
+const requestTimeoutMs = 120 * 1000;
 
 const tryHttpGetString = async function(url) {
 	let resp = await tryHttpGetXml(url);
@@ -519,9 +548,18 @@ const getEduniTests = async function(baseUrl) {
 
 const getParserErrorDocTests = async function(baseUrl) {
 	return [
-		`blink-75.0.3763.0-win64-eduni-namespaces-1.0-009.xml`,
-		`gecko-56.2.5-win64.xml`,
-		`blink-75.0.3763.0-win64.xhtml`,]
+		`parsererror-inline-blink-75.0.3763.0-win64.xml`,
+		`parsererror-gecko-56.2.5-win64.xml`,
+		`parsererror-blink-75.0.3763.0-win64.xhtml`,
+		`parsererror-001-wf.xml`,
+		`parsererror-002-wf.xml`,
+		`parsererror-003-mf.xml`,
+		`parsererror-004-mf.xml`,
+		`parsererror-005-mf.xml`,
+		`parsererror-006-wf.xml`,
+		`parsererror-007-mf.xml`,
+		`parsererror-008-mf.xml`,
+		`parsererror-009-mf.xml`,]
 		.map(href => ({
 			url : new URL(href, baseUrl),
 			wellformed : true,}));

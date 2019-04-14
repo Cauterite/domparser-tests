@@ -19,29 +19,14 @@ test cases `/xmlts20080827/*` borrowed from: https://www.w3.org/XML/Test/xmlconf
 
 ```
 userAgent: "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:56.0; Waterfox) Gecko/20100101 Firefox/56.2.5"
-running 2597 tests
-2597/2597 tests passed
+running 2606 tests
+2606/2606 tests passed
 ```
 
 # chrome 75:
 
 ```
 userAgent: "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3764.0 Safari/537.36"
-running 2597 tests
-2540/2597 tests passed
-```
-
-unfortunately chrome appears to have a bug where certain classes of XML malformities cause the resulting document to retain comments and processing instructions from the source.
-
-example:
-
-```javascript
-let doc = (new DOMParser).parseFromString(
-	`<a xmlns="http://www.w3.org/XML/1998/namespace"/><?b?>`, `application/xml`);
-
-console.log(doc.lastChild instanceof ProcessingInstruction);
-// → true
-
-console.log(doc.getElementsByTagName(`parsererror`));
-// → HTMLCollection [parsererror]
+running 2606 tests
+2606/2606 tests passed
 ```
