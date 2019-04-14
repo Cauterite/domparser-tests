@@ -1,4 +1,4 @@
-﻿/* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 
 'use strict';
 
@@ -338,7 +338,6 @@ const getIbmTests = async function(baseUrl) {
 	let tests = [];
 
 	for (let [dir, name] of [
-		/* gecko DOMParser doesn't support xml 1.1 */
 		[`./xml-1.1/`, `ibm_valid.xml`],
 		[`./xml-1.1/`, `ibm_not-wf.xml`],
 		[`./xml-1.1/`, `ibm_valid.xml`],
@@ -502,10 +501,8 @@ const getEduniTests = async function(baseUrl) {
 	let tests = [];
 
 	for (let [dir, name] of [
-		/* gecko DOMParser doesn't support xml 1.1 */
 		[`./xml-1.1/`, `xml11.xml`],
 		[`./namespaces/1.1/`, `rmt-ns11.xml`],
-
 		[`./errata-2e/`, `errata2e.xml`],
 		[`./errata-3e/`, `errata3e.xml`],
 		[`./errata-4e/`, `errata4e.xml`],
