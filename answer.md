@@ -36,10 +36,10 @@ We can leverage the fact that only one `<parsererror>` is inserted, even if ther
 Example:
 
 ```javascript
-let errElemCount = doc.documentElement.getElementsByTagName(`parsererror`).length;
-if (errElemCount !== 0) {
+let errCount = doc.documentElement.getElementsByTagName(`parsererror`).length;
+if (errCount !== 0) {
 	let doc2 = parser.parseFromString(src+`<?`, `application/xml`);
-	if (doc2.documentElement.getElementsByTagName(`parsererror`).length === errElemCount) {
+	if (doc2.documentElement.getElementsByTagName(`parsererror`).length === errCount) {
 		/* the XML was malformed */
 	}
 }
