@@ -15,8 +15,7 @@ Example:
 ```javascript
 let key = `a`+Math.random().toString(32);
 
-let doc = (new DOMParser).parseFromString(
-	src+`<?${key}?>`, `application/xml`);
+let doc = (new DOMParser).parseFromString(src+`<?${key}?>`, `application/xml`);
 
 let lastNode = doc.lastChild;
 if (!(lastNode instanceof ProcessingInstruction)
@@ -27,5 +26,21 @@ if (!(lastNode instanceof ProcessingInstruction)
 } else {
 	/* the XML was well-formed */
 	doc.removeChild(lastNode);
+}
+```
+
+If case (2) occurs, the error won't be detected by the above technique, so another step is required.
+
+We can leverage the fact that only one `<parsererror>` is inserted, even if there are multiple errors found in different places within the source. By parsing the source string again, by this time with a syntax error appended, we can ensure the (2) behaviour is triggered, then check whether the number of `<parsererror>` elements has changed — if not, the first `parseFromString` result already contained a true `<parsererror>`.
+
+Example:
+
+```javascript
+let errElemCount = doc.documentElement.getElementsByTagName(`parsererror`).length;
+if (errElemCount !== 0) {
+	let doc2 = parser.parseFromString(src+`<?`, `application/xml`);
+	if (doc2.documentElement.getElementsByTagName(`parsererror`).length === errElemCount) {
+		/* the XML was malformed */
+	}
 }
 ```
