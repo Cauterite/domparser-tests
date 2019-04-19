@@ -76,7 +76,7 @@ const tryParseXml = function(src) {
 	try {
 		doc = parser.parseFromString(
 			src+`<?${key}?>`, `application/xml`);
-	} catch (x) {}
+	} catch (_) {}
 
 	if (!(doc instanceof XMLDocument)) {
 		return null;
@@ -99,7 +99,7 @@ const tryParseXml = function(src) {
 		try {
 			errDoc = parser.parseFromString(
 				src+`<?`, `application/xml`);
-		} catch (x) {}
+		} catch (_) {}
 
 		if (!(errDoc instanceof XMLDocument)
 			|| errDoc.documentElement.getElementsByTagName(`parsererror`).length
