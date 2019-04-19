@@ -44,3 +44,16 @@ if (errCount !== 0) {
 	}
 }
 ```
+
+---
+
+I put together a test suite to verify this approach: [https://github.com/Cauterite/domparser-tests](https://github.com/Cauterite/domparser-tests).
+
+It tests against the entire [XML W3C Conformance Test Suite](https://www.w3.org/XML/Test/xmlconf-20080827.html), plus a few extra samples to ensure it can distinguish documents containing `<parsererror>` elements from actual errors emitted by the DOMParser. Only a handful of test cases are excluded becase they contain invalid unicode sequences.
+
+To be clear, the suite is only testing whether the result is identical to `XMLHttpRequest.responseXML` for a given document.
+
+You can run the suite yourself at [https://cauterite.github.io/domparser-tests/index.html](https://cauterite.github.io/domparser-tests/index.html), but note that it requires ECMAScript 2018 support.
+
+At time of writing, all tests pass in recent versions of Firefox, Chrome, Safari and Firefox on Android.
+Edge should pass since its DOMParser appears to behave like Firefox's, and Opera should pass since it's based on Chromium.
