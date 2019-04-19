@@ -56,7 +56,7 @@ To be clear, the suite is only testing whether the result is identical to `XMLHt
 You can run the suite yourself at [https://cauterite.github.io/domparser-tests/index.html](https://cauterite.github.io/domparser-tests/index.html), but note that it uses ECMAScript 2018.
 
 At time of writing, all tests pass in recent versions of Firefox, Chrome, Safari and Firefox on Android.
-Edge should pass since its DOMParser appears to behave like Firefox's, and Opera should pass since it's based on Chromium.
+Edge should pass since its DOMParser appears to behave like Firefox's, and Opera should pass since it's a fork of Chromium.
 
 ---
 
