@@ -49,11 +49,66 @@ if (errCount !== 0) {
 
 I put together a test suite to verify this approach: [https://github.com/Cauterite/domparser-tests](https://github.com/Cauterite/domparser-tests).
 
-It tests against the entire [XML W3C Conformance Test Suite](https://www.w3.org/XML/Test/xmlconf-20080827.html), plus a few extra samples to ensure it can distinguish documents containing `<parsererror>` elements from actual errors emitted by the DOMParser. Only a handful of test cases are excluded becase they contain invalid unicode sequences.
+It tests against the entire [XML W3C Conformance Test Suite](https://www.w3.org/XML/Test/xmlconf-20080827.html), plus a few extra samples to ensure it can distinguish documents containing `<parsererror>` elements from actual errors emitted by the DOMParser. Only a handful of test cases are excluded because they contain invalid unicode sequences.
 
 To be clear, the suite is only testing whether the result is identical to `XMLHttpRequest.responseXML` for a given document.
 
-You can run the suite yourself at [https://cauterite.github.io/domparser-tests/index.html](https://cauterite.github.io/domparser-tests/index.html), but note that it requires ECMAScript 2018 support.
+You can run the suite yourself at [https://cauterite.github.io/domparser-tests/index.html](https://cauterite.github.io/domparser-tests/index.html), but note that it uses ECMAScript 2018.
 
 At time of writing, all tests pass in recent versions of Firefox, Chrome, Safari and Firefox on Android.
 Edge should pass since its DOMParser appears to behave like Firefox's, and Opera should pass since it's based on Chromium.
+
+---
+
+Please let me know if you can find any counter-examples or possible improvements.
+
+For the lazy, here's the complete function:
+
+```javascript
+const tryParseXml = function(src) {
+	/* returns an XMLDocument, or null if `src` is malformed */
+
+	let key = `a`+Math.random().toString(32);
+
+	let parser = new DOMParser;
+
+	let doc = null;
+	try {
+		doc = parser.parseFromString(
+			src+`<?${key}?>`, `application/xml`);
+	} catch (x) {}
+
+	if (!(doc instanceof XMLDocument)) {
+		return null;
+	}
+
+	let lastNode = doc.lastChild;
+	if (!(lastNode instanceof ProcessingInstruction)
+		|| lastNode.target !== key
+		|| lastNode.data !== ``)
+	{
+		return null;
+	}
+
+	doc.removeChild(lastNode);
+
+	let errElemCount =
+		doc.documentElement.getElementsByTagName(`parsererror`).length;
+	if (errElemCount !== 0) {
+		let errDoc = null;
+		try {
+			errDoc = parser.parseFromString(
+				src+`<?`, `application/xml`);
+		} catch (x) {}
+
+		if (!(errDoc instanceof XMLDocument)
+			|| errDoc.documentElement.getElementsByTagName(`parsererror`).length
+				=== errElemCount)
+		{
+			return null;
+		}
+	}
+
+	return doc;
+}
+```
